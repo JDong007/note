@@ -1,0 +1,3 @@
+##扩容
+docer-compose up --scale ngnix=5
+docker-compose logs ngnix

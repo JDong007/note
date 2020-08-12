@@ -1,0 +1,49 @@
+ ## 网卡
+  计算机网络中，计算机能够进行通信硬件支，唯一的MAC地址
+eth0
+给网卡增加IP地址
+  ip addr add 192.168.0.168/24 dev eth0
+删除网卡IP地址
+  ip addr delete 192.168.0.168/24 dev eth0
+
+  link/ether mk地址
+  inet 网卡地址
+## 网络 network namespace
+ 创建一个namespace ： ip netns add ns1
+ 查询 namespace : ip netns list
+ 查询namespace信息 ip netns exex ns1 ip
+ 启动namespace信息 ip netns exec ns1 ifup lo
+
+ veth pair:Virual Ethernet Pair 成对
+ 创建成对的网卡信息
+ ip link add veth-ns1 type veth peer name veth-ns2
+
+## 给namespace添加网卡
+ ip link set veth-ns1 netns ns1
+
+## 给网卡添加ip地址
+  ip netns exec ns1 ip addr add 192.168.0.156/24 dev veth-ns1
+## 启动网卡
+  ip netns exec ns1 ip link set veth-ns1 up
+## 查询
+  ip netns exec ns1 ip a
+
+ip netns exec ns1 ping 192.168.0.157
+```
+
+```
+```
+#### docker 创建bridge类型网络
+docker network create tomcat-net
+docker run -d --name custom-net-tomcat --network tomcat-net -p 8888:8080 tomcat
+
+#### docker 把容器加入到创建的网络当中
+docker network connect tomcat-net tomcat01
+docker exec -it bash  tomcat01 ping 172.17.0.2
+tomcat-net：网络名称 tomcat01：容器名称
+
+
+--like 只能单向通信
+自定义自己的bridge类型的网络 就可以相互通信了
+
+vxlan 解决多机网络通信都问题，底层实现是overlay

@@ -1,0 +1,28 @@
+将多台机器组成一个集群，共同给外界提供服务
+
+准备三台安装了docker的机器
+
+### 初始化为主节点
+docker swarm init --advertise-addr=192.168.0.1
+### 查看节点状态
+docker node ls
+### 加入节点
+docker swarm join
+
+## 创建一个container
+docker service create --name my-tomcat tomcat
+
+## 扩容 缩容
+docker service scale tomcat01=3
+#查看
+docker service ps tomcat01
+
+#删除所有tomcat01
+docker service rm tomcat01
+
+### 网络互连 docker stack
+集群中的任意机器都可以访问成功
+
+Ingress network
+
+Internal技术 负载均衡技术

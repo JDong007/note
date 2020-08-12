@@ -1,0 +1,45 @@
+### Replication数据库集群方案
+  （速度快，无需所有节点都同步成功，异步复制，无法保证集群中每个节点都数据是一致的，可以存储低价值的数据）
+
+### PXC（Percona XtraDB Cluster）
+  强一致性的高可用数据集群搭建方案
+
+percona-xtradb-cluster[mysql镜像的一个封装]
+
+安装：
+  第一步：拉取镜像
+  docker pull percona/percona-xtradb-cluster:5.7.21
+  docker tag percona/percona-xtradb-cluster:5.7.21 pxc
+  docker rmi -f percona/percona-xtradb-cluster:5.7.21
+  docker network create pxc-net
+  docker volume create --name v1
+  docker volume create --name v2
+  docker volume create --name v3
+  docker run -d -p 3301:3306 -v v1:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456
+    -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=123456
+    --privileged --name=mode1 --net=pxc-net --ip 172.18.0.3 pxc
+
+    docker run -d -p 3302:3306 -v v2:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456
+      -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=123456
+      -e CLUSTER_JOIN=node1 --privileged --name=mode2 --net=pxc-net --ip 172.18.0.4 pxc
+
+      docker run -d -p 3303:3306 -v v1:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456
+        -e CLUSTER_NAME=PXC -e XTRABACKUP_PASSWORD=123456
+        -e CLUSTER_JOIN=node1 --privileged --name=mode3 --net=pxc-net --ip 172.18.0.5 pxc
+
+  安装HaProxy
+  docker pull haproxy
+  mkdir -p /tmp/haproxy
+  touch /tmp/haproxy/haproxy.cfg
+  docker run -d -p 3308:3306 -v /tmp/haproxy:/usr/local/etc/haproxy --name haproxy --privileged --net=pxc-net haproxy
+  docker exec -it haproxy /bin/bash
+  haproxy -f /usr/local/etc/haproxy/haproxy.cfg
+ip:8888/dbs_monitor 监控
+
+
+  网络：
+  创建一个网络给集群使用
+    pxc-net
+  持久化：
+  docker volume create --name v1-myql01 v2-myql02 v3-myql03
+  容器创建：

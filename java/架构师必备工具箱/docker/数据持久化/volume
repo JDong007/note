@@ -1,0 +1,18 @@
+## VOLUME关键字
+Dockerfile 中volume /var/lib/mysql : 容器中的数据存储在这个目录下
+容器中对应的存储目录查询
+docker volume ls
+docker volume inspect VOLUME-NAME
+删除容器 VOLUME不会被删除
+## 删除VOLUME
+docker volume rm -f VOLUME-NAME
+数据恢复
+VOLUME-NAME存在才可以恢复 不存在创建新的VOLUME-NAME
+docker run -d --name mysql8 -v VOLUME-NAME:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 mysql
+
+docker run -d -v 宿主机的任意目录:容器的任意目录
+
+Bind Mounting:开发者利器
+···
+
+···
