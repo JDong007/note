@@ -1,0 +1,19 @@
+### 安装 analysis-icu 插件
+1. 在bin目录下打开cmd窗口
+2. 输入 elasticsearch-plugin install analysis
+
+
+### 查看插件
++ 查看插件列表 elasticsearch-plugin list
++ URL安装 elasticsearch-plugin install [url]
++ 离线安装
+   1. 点击下载analysis-smartcn离线包
+   2. 将离线包解压到es插件目录下
+   3. 重启es。新装插件必须要重启es
+   4. 例子
+  ```
+     $ sudo wget -P /opt/packages https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-smartcn/analysis-smartcn-6.4.0.zip
+     $ sudo tar -zxvf /opt/packages/analysis-smartcn-6.4.0.zip -C /opt/apps/elasticsearch-6.4.0/plugins
+     $ sudo systemctl restart elasticsearch.service
+  ```
+ + 移除插件 {ES_HOME}/bin/elasticsearch-plugin remove [pluginName]
