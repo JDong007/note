@@ -1,0 +1,118 @@
+相关参数
+目录地址: (本机目录) D:\web => /www/ (对应虚拟机目录)
+
+准备工作
+安装vagrant
+https://www.vagrantup.com/downloads.html
+
+更改vagrant配置文件的位置
+如果C盘空间足够，此步可不操作
+
+将 C:\Users\user_name\.vagrant.d 移动到新的位置
+
+新建环境变量VAGRANT_HOME，并指向新路径
+安装virtualbox
+https://www.virtualbox.org/wiki/Downloads
+
+下载centos7的vagrant box到你想挂载的目录(比如 D:\web)，用vagarant镜像下载会非常慢，推荐用下面的链接下载
+下载地址：
+cloud.centos.org
+
+这个box是纯净版的
+其它镜像:
+http://cloud.centos.org/centos/7/vagrant/x86_64/images/
+
+更改virtaulbox虚拟机默认位置
+打开 VirtualBox 程序，点击管理/全局设定菜单项
+
+将常规栏里的默认虚拟电脑位置改为其他磁盘下的路径
+
+重新启动VirtualBox程序
+
+使用vagrant
+vagrant plugin install vagrant-vbguest
+
+vagrant  box  add  centos7.2  virtualbox.box
+#命令解释:vagrant box add为载入镜像命令，centos7.2为载入后的镜像名称，virtualbox.box为box文件名
+
+vagrant  init  centos7.2  #根据镜像初始化一个虚拟机
+
+# 修改本机目录下的Vagrantfile文件 , 将config.vm.network "public_network"前的注释删除并保存
+
+vagrant  up    #在本机目录下执行该命令,启动虚拟机
+
+vagrant vbguest --auto-reboot
+
+vagrant package # 打包系统生成package.box文件
+默认账号 vagrant 密码 vagrant ；
+root账号的默认密码vagrant；
+
+执行完vagrant up后，虚拟机就启动了
+
+虚拟机可以直接用VirtualBox管理，也可以用Xshell连接虚拟机进行管理
+
+也可以在该目录下执行 vagrant ssh 连入虚拟机(windows需要安装shell工具)
+
+此时你已经有了一个centOS7.2的虚拟机，接下来就可以用它来搭建各种服务来运行你的项目。
+
+之后每次只需在挂载目录下执行vagrant up就可以了
+
+vagrantfile配置
+建议在vagrantfile中配置
+
+config.vm.network "private_network", type: "dhcp"
+
+config.vbguest.auto_update = false
+
+# do NOT download the iso file from a webserver
+config.vbguest.no_remote = true
+
+config.vm.synced_folder ".", "/vagrant",owner: "vagrant",group: "vagrant",mount_options:["dmode=777","fmode=777"]
+其它配置详见
+《官方文档》 《Vagrantfile 配置》
+
+常见问题
+共享目录无法挂载
+报错信息
+Vagrant was unable to mount VirtualBox shared folders. This is usually
+because the filesystem "vboxsf" is not available. This filesystem is
+made available via the VirtualBox Guest Additions and kernel module.
+Please verify that these guest additions are properly installed in the
+guest. This is not a bug in Vagrant and is usually caused by a faulty
+Vagrant box. For context, the command attempted was:
+
+mount -t vboxsf -o uid=1000,gid=1000 vagrant /vagrant
+
+The error output from the command was:
+
+/sbin/mount.vboxsf: mounting failed with the error: No such device
+解决方案
+方法1 安装vagrant插件
+vagrant plugin install vagrant-vbguest
+vagrant vbguest --auto-reboot
+vagrant vbguest --status   #查看vbguest运行状态
+方法2 更新vagrant和virtualbox
+更新vagrant之后需要更新vagrant插件
+
+vagrant plugin update
+方法三 重新安装vboxadd
+VBoxGuestAdditions的位置
+
+for linux : /usr/share/virtualbox/VBoxGuestAdditions.iso
+for Mac : /Applications/VirtualBox.app/Contents/MacOS/VBoxGuestAdditions.iso
+for Windows : %PROGRAMFILES%/Oracle/VirtualBox/VBoxGuestAdditions.iso
+使用vitualbox挂载上面的iso虚拟光驱
+
+#进入虚拟机
+vagrant ssh
+#如果这个命令无法进入的话，就用virtualbox进入
+
+#*号为版本号
+cd /opt/VBoxGuestAdditions-*/init
+sudo ./vboxadd setup # 如果不能setup就yum update
+
+#退出虚拟机
+exit
+
+#重启虚拟机
+vagrant reload

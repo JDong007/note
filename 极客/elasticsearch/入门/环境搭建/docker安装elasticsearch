@@ -1,0 +1,15 @@
+1. 安装docker
+2. pull elasticsearch 镜像
+    ```
+    docker pull elasticsearch:7.1.0
+    ```
+3. 创建docker network
+    ```
+    docker network create es
+    ```
+4. 创建elasticsearch容器、
+    ```
+    docker run -d --name es2 --network es --network-alias es2 -p  9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.1.0
+    ```
+4. docker ps   # 列出正在运行的容器
+5. 使用curl localhost:9200查看是否启动成功

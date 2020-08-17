@@ -1,0 +1,33 @@
+1. 拉取kibana镜像 docker pull kibana:[版本号]
+    ```
+    docker pull kibana:7.1.0
+    ```
+2. 指定一个路径创建一个config目录,用于存放kibana.yml
+   ```
+   mkdir -p /usr/local/kibana/config
+3. 配置kibana.yml文件
+   ```
+server.name: kibana
+server.host: "0.0.0.0"
+elasticsearch.hosts: [ "http://172.16.11.248:9200" ]   ## es地址
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+   ```
+4.
+   ```
+   创建kibana容器
+    ```
+    docker run -d -it --network es --network-alias kibana  --name=kibana -p 5601:5601 -v /usr/local/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml kibana:7.1.0
+
+    ```
+5. kibana安装插件
+    ```
+    bin/kibana-plugin install [插件名称]
+    ```
+6. 查看插件
+  ```
+  bin/kibana-plugin list
+  ```
+7. 卸载插件
+  ```
+  bin/kibana-plugin remove [插件名称]
+  ```

@@ -1,0 +1,22 @@
+1. 安装vagrant
+2. 安装virtaulbox
+3. 下载镜像virtualbox.box (centos7)
+4. 查看镜像文件 vagrant box list
+5. 添加镜像文件  vagrant box add centos/7 D:\tmp\virtualbox.box
+6. 生成文件Vagrantfile
+   ```
+  Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7" #使用都镜像文件
+  config.vm.network "public_network"
+  config.vm.provider "virtualbox" do |vb|
+        vb.memory = "8000" #内存大小
+        vb.name= "es-01" #虚拟机名称
+        vb.cpus= 2 #内核数量
+   ```
+7. 启动虚拟机 vagrant up
+8. vagrant ssh 连接虚拟机
+9. sudu -i 使用root账户登录
+10. vagrant ssh-config 查看虚拟机ssh配置
+11. 打开root账户 修改ssh可以密码登录 vi /etc/ssh/sshd_config  PasswordAuthentication yes
+12. 修改root账户的密码   passwd
+13. 重启ssh服务 systemctl restart sshd

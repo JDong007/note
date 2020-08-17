@@ -1,3 +1,8 @@
 ./bin/elasticsearch -Enode.name=node1 -E cluster.name=geektime -E path.data=node1_data -d
 ./bin/elasticsearch -Enode.name=node2 -E cluster.name=geektime -E path.data=node2_data -d
-./bin/elasticsearch -Enode.name=node3 -E cluster.name=geektime -E path.data=node3_data -d 
+./bin/elasticsearch -Enode.name=node3 -E cluster.name=geektime -E path.data=node3_data -d
+
+
+docker run -d -p 9200:9200 -p 9300:9300 --name elas1 -h elas1  -e cluster.name=xxx-es -e cluster.initial_master_nodes=elas1 -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -e xpack.security.enabled=false elasticsearch:7.1.0
+docker run -d -p 9211:9200 -p 9311:9300 --link elas1  --name elas2 -e cluster.name=xxx-es -e cluster.initial_master_nodes=elas1 -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -e xpack.security.enabled=false -e discovery.zen.ping.unicast.hosts=elas1 elasticsearch:7.1.0
+docker run -d -p 9222:9200 -p 9322:9300 --link elas1  --name elas3 -e cluster.name=xxx-es -e cluster.initial_master_nodes=elas1 -e ES_JAVA_OPTS="-Xms512m -Xmx512m" -e xpack.security.enabled=false -e discovery.zen.ping.unicast.hosts=elas1 elasticsearch:7.1.0
