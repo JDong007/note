@@ -1,0 +1,76 @@
++ 什么是索引
+  ```
+  索引实际上是指向一个或者多个物理分片都逻辑命名空间
+  ```
+   + 创建索引
+     ```
+     PUT /[索引名称]
+     {
+        index的配置（primary shard的数量等）
+     }
+
+     栗子：
+     // 栗子（不带配置信息的话以默认配置创建
+    PUT /product
+
+    // 栗子（带配置信息的话以配置信息创建）
+    PUT /product
+    {
+        "settings":{
+            "index":{
+                "number_of_shards":3,
+                "number_of_replicas":1
+              }
+         }
+    }
+
+    在上述的例子中：number_of_shards是主分片的数量；
+    number_of_replicas是副本分片的数量(
+    这里提一下，number_of_replicas副本分片的数量是面向主分片的，
+    所以这个值为1时代表每一个主分片有一个副本分片)。
+
+    返回结果
+    {
+      "acknowledged": true,
+      "shards_acknowledged": true,
+      "index": "product"
+    }
+
+     ```
+   + 查看单个索引
+      ```
+      语法：GET /索引名
+      效果：返回指定索引的信息
+
+      栗子：GET /product
+
+      ```
+   + 查看所有索引
+      ```
+      命令：GET /_cat/indices?v
+      效果：查看所有索引，显示索引的健康状态等信息。
+      【如果没有v选项，那么就不会有第一行关于该列意义的头部】
+      返回结果解析：
+
+      ```
+   + 删除索引
+     ```
+    语法：DELETE /索引名【支持同时删除多个索引，以逗号分割，如DELETE /testindex1,testindex2】
+    语法例子：DELETE /product
+    返回结果：【当acknowledged为true的时候代表删除成功】
+    {
+      "acknowledged": true
+    }
+     ```
+   + 修改索引
+     ```
+    【修改索引主要是修改分片数量、mapping、分词器，由于mapping和分词器涉及很深，需要前置知识，所以留到后面讲。】
+     ```
+
++ 类型type
+  ```
+  类型type也是用于存储document的逻辑结构，相对于index来说，type是index的下级，所以通常在面向有实际意义的数据时，
+  index作为大类的划分，type作为小类的划分。比如如果把book书作为一个大类来建立index的话，
+  那么书的类型(小说类、文学类、IT技术类等)就可以作为type。
+  type其实并不真的用来划分逻辑结构，它只是意义上的！ElasticSearch使用了Lucene的底层架构，而Lucene是没有type
+  ```

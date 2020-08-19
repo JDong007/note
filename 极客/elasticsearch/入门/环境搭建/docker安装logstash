@@ -4,45 +4,63 @@
     ```
     docker pull logstash:7.1.0
     ```
-4. 配置logstash.conf文件
-    ```
-input {
-  file {
-    path => "/Users/yiruan/dev/elk7/logstash-7.0.1/bin/movies.csv"
-    start_position => "beginning"
-    sincedb_path => "/dev/null"
-  }
-}
-filter {
-  csv {
-    separator => ","
-    columns => ["id","content","genre"]
-  }
-  mutate {
-    split => { "genre" => "|" }
-    remove_field => ["path", "host","@timestamp","message"]
-  }
-  mutate {
-    split => ["content", "("]
-    add_field => { "title" => "%{[content][0]}"}
-    add_field => { "year" => "%{[content][1]}"}
-  }
-  mutate {
-    convert => {
-      "year" => "integer"
-    }
-    strip => ["title"]
-    remove_field => ["path", "host","@timestamp","message","content"]
-  }
-}
-output {
-   elasticsearch {
-     hosts => "http://192.168.0.16:9200"
-     index => "movies"
-     document_id => "%{id}"
-   }
-  stdout {}
-}
 
+4. 创建/usr/local/logstash/patterns 、/usr/local/logstash/conf.d 目录
   ```
-5. docker run -d --restart=always --log-driver json-file --log-opt max-size=100m --log-opt max-file=2 -p 5044:5044 --name xinyar-logstash -v /data/elk/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml -v /data/elk/logstash/conf.d/:/usr/share/logstash/conf.d/ logstash:7.4.1
+  mkdir -p /usr/local/logstash/patterns
+  mkdir -p /usr/local/logstash/conf.d
+  进入 /usr/local/logstash 目录
+  cd /usr/local/logstash
+  ```
+5. 配置logstash.conf文件 touch logstash.conf
+  ```
+  input {
+    file {
+      path => "/usr/local/logstash/data/movies.csv"
+      start_position => "beginning"
+      sincedb_path => "/dev/null"
+    }
+  }
+  filter {
+    csv {
+      separator => ","
+      columns => ["id","content","genre"]
+    }
+    mutate {
+      split => { "genre" => "|" }
+      remove_field => ["path", "host","@timestamp","message"]
+    }
+    mutate {
+      split => ["content", "("]
+      add_field => { "title" => "%{[content][0]}"}
+      add_field => { "year" => "%{[content][1]}"}
+    }
+    mutate {
+      convert => {
+        "year" => "integer"
+      }
+      strip => ["title"]
+      remove_field => ["path", "host","@timestamp","message","content"]
+    }
+  }
+  output {
+     elasticsearch {
+       hosts => "http://192.168.0.16:9200"
+       index => "movies"
+       document_id => "%{id}"
+     }
+     stdout {}
+  }
+  ```
+6. 配置logstash.yml 文件 touch logstash.yml
+    ```
+
+    ```
+7. 创建logstash容器
+    ```
+    docker run -d --name logstash -p 5044:5044 -p 9600:9600 \
+     -v /usr/local/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml \
+     -v /usr/local/logstash/conf.d:/usr/share/logstash/pipeline \
+     -v /usr/local/logstash/patterns:/usr/share/logstash/patterns \
+     logstash:7.1.0
+    ```
