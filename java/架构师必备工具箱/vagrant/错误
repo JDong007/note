@@ -1,0 +1,73 @@
++  ### version 兼容问题 VirtualBox6.1 driver Version FILE path Vagrant2.2
+   + #### vagrant up 后出现
+    ```
+    No usable default provider could be found for your system.
+
+    Vagrant relies on interactions with 3rd party systems, known as
+    "providers", to provide Vagrant with resources to run development
+    environments. Examples are VirtualBox, VMware, Hyper-V.
+
+    The easiest solution to this message is to install VirtualBox, which
+    is available for free on all major platforms.
+
+    If you believe you already have a provider available, make sure it
+    is properly installed and configured. You can see more details about
+    why a particular provider isn't working by forcing usage with
+    `vagrant up --provider=PROVIDER`, which should give you a more specific
+    error message for that particular provider.
+    ```
+   + #### 解决
+      + 修改${HOME}\embedded\gems\2.2.6\gems\vagrant-2.2.6\plugins\providers\virtualbox\plugin.rb文件，
+              在61行左右，添加autoload :Version_6_1, File.expand_path("../driver/version_6_1", __FILE__)
+         ```
+         # Drop some autoloads in here to optimize the performance of loading
+        # our drivers only when they are needed.
+        module Driver
+          autoload :Meta, File.expand_path("../driver/meta", __FILE__)
+          autoload :Version_4_0, File.expand_path("../driver/version_4_0", __FILE__)
+          autoload :Version_4_1, File.expand_path("../driver/version_4_1", __FILE__)
+          autoload :Version_4_2, File.expand_path("../driver/version_4_2", __FILE__)
+          autoload :Version_4_3, File.expand_path("../driver/version_4_3", __FILE__)
+          autoload :Version_5_0, File.expand_path("../driver/version_5_0", __FILE__)
+          autoload :Version_5_1, File.expand_path("../driver/version_5_1", __FILE__)
+          autoload :Version_5_2, File.expand_path("../driver/version_5_2", __FILE__)
+          autoload :Version_6_0, File.expand_path("../driver/version_6_0", __FILE__)
+          #添加
+          autoload :Version_6_0, File.expand_path("../driver/version_6_1", __FILE__)
+        end
+         ```
+       + 修改D:\HashiCorp\Vagrant\embedded\gems\2.2.6\gems\ vagrant2.2.6\plugins\providers\virtualbox\driver\meta.rb文件，
+                在66行左右增加"6.1" => Version_6_1,，修改后如下
+          ```
+          driver_map   = {
+            "4.0" => Version_4_0,
+            "4.1" => Version_4_1,
+            "4.2" => Version_4_2,
+            "4.3" => Version_4_3,
+            "5.0" => Version_5_0,
+            "5.1" => Version_5_1,
+            "5.2" => Version_5_2,
+            "6.0" => Version_6_0,
+            "6.1" => Version_6_1, #添加
+          }
+          ```
+
+      + 在meta.rb文件同级目录下新建version_6_1.rb文件，文件内容如下：
+         ```
+          require File.expand_path("../version_6_0", __FILE__)
+          module VagrantPlugins
+            module ProviderVirtualBox
+              module Driver
+                # Driver for VirtualBox 6.1.x
+                class Version_6_1 < Version_6_0
+                  def initialize(uuid)
+                    super
+
+                    @logger = Log4r::Logger.new("vagrant::provider::virtualbox_6_1")
+                  end
+                end
+              end
+            end
+          end
+         ```
+   + ### 重新vagrant up 成功搭建虚拟机
