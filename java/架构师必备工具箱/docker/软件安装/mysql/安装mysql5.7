@@ -1,0 +1,16 @@
+### docker安装mysql5.7，且外部能访问
+   1. 拉取镜像 docker pull mysql:5.7.26
+   2. 运行容器
+      ```
+      docker run -p 53306:3306 -v $PWD/mysql:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root --name mysql5.7 -d  mysql:5.7.26
+      ```
+      + -v $PWD/mysql:/var/lib/mysql （将主机当前目录下的/mysql挂载到容器的/var/lib/mysql）
+      + -e MYSQL_ROOT_PASSWORD=password (初始化root用户的密码)
+      + --name 给容器命名为 （mysql5.7）
+      + -d 表示容器在后台运行
+      + mysql:5.7.26 使用的镜像文件
+    3. 如果连接失败
+      ```
+      如果还是不能连接，是局域网的问题，可以直接进入实例操作
+      mysql> grant all privileges on *.* to root@"%" identified by "password" with grant option;
+      ```
