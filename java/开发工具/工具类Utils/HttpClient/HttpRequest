@@ -1,0 +1,118 @@
+package org.jeecg.modules.st.utils;
+
+import com.alibaba.fastjson.JSONObject;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @Description ST 请求Utils
+ * @Author HJD
+ * @Date 2020/9/8 16:13
+ */
+public class HttpRequest {
+
+    /**
+     * post请求
+     * @param param
+     * @param url
+     * @param token
+     * @return
+     */
+    public static String postRequest(Map<String,String> param, String url,String token){
+        List<NameValuePair> formParams = new ArrayList<>();
+        for (Map.Entry<String, String> map : param.entrySet()) {
+            formParams.add(new BasicNameValuePair(map.getKey(), map.getValue()));
+        }
+        HttpEntity reqEntity = null;
+        try {
+            reqEntity = new UrlEncodedFormEntity(formParams, "utf-8");
+            RequestConfig requestConfig = RequestConfig.custom()
+                    //一、连接超时：connectionTimeout-->指的是连接一个url的连接等待时间
+                    .setConnectTimeout(5000)
+                    // 二、读取数据超时：SocketTimeout-->指的是连接上一个url，获取response的返回等待时间
+                    .setSocketTimeout(5000)
+                    .setConnectionRequestTimeout(5000)
+                    .build();
+
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPost post = new HttpPost(url);
+            post.setEntity(reqEntity);
+            post.setConfig(requestConfig);
+            //设置请求头
+            post.setHeader("X-Authorization", token);
+
+            HttpResponse response = client.execute(post);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                HttpEntity resEntity = response.getEntity();
+                return EntityUtils.toString(resEntity, "utf-8");
+            } else {
+                System.out.println("请求失败");
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * get请求
+     * @param param
+     * @param url
+     * @param token
+     * @return
+     */
+    public static String getRequest(Map<String,String> param, String url,String token){
+        //1.创建HttpClient对象
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        //创建URLBuilder
+        URIBuilder uriBuilder = null;
+        CloseableHttpResponse response = null;
+        try {
+            uriBuilder = new URIBuilder(url);
+            //设置参数
+            for (Map.Entry<String, String> map : param.entrySet()) {
+                uriBuilder.setParameter(map.getKey(), map.getValue());
+            }
+            HttpGet httpGet = new HttpGet(uriBuilder.build());
+            //设置请求头
+            httpGet.setHeader("X-Authorization", token);
+            //请求
+            response = httpClient.execute(httpGet);
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+                HttpEntity httpEntity = response.getEntity();
+                return EntityUtils.toString(httpEntity,"utf8");
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}

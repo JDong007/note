@@ -20,3 +20,9 @@
    + 登录成功后返回的样例
    + 怎么解密样例数据
    + 解密后的样例数据参数的含义
+      + ai_email
+      + ai_firstname
+      + ai_lastname
+      + ai_displayname
+      + ai_domain
+      + ai_group

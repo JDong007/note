@@ -1,0 +1,4 @@
+存储 hadoop  hdfs(存储大数据) yarn（资源分配）
+离线计算 hive
+实时计算 spark flink
+es 

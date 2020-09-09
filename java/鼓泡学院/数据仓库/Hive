@@ -1,0 +1,18 @@
++ ### 数据分仓
+   + ODS(Operation Data Store) 原始数据层
+   + DWD(Data Warehouse deatail) 明细层
+      + 清洗
+      + 去除空值、脏数据、超过极限值范围的数据、数据脱敏
+      + 获得干净的数据
+   + DWS(Data Warehouse Service ) 服务数据层
+      + 数据宽表：数据冗余，查询性能得到了提高，查询方便
+      + 客户宽表：100多个字段
+      + join数据倾斜
+   + ADS(Application Data Store) 数据应用层
+      + 最终结果
+
++ ###数据为什么要分层：
+   + 开发效率和维护相率最高的方法
+   + 复杂问题简单化
+   + 隔离原始数据
+   + 解耦
