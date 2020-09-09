@@ -78,12 +78,23 @@ services:
     es7net:
       driver: bridge
     ```
+2. 指定一个路径创建一个config目录,用于存放kibana.yml
+   ```
+   mkdir -p /usr/local/kibana/config
+   ```
+3. 配置kibana.yml文件
+   ```
+    server.name: kibana
+    server.host: "0.0.0.0"
+    elasticsearch.hosts: [ "http://172.16.11.248:9200" ]   ## es地址
+    xpack.monitoring.ui.container.elasticsearch.enabled: true
+   ```
 
-3. 运行docker-compose.yaml文件
+4. 运行docker-compose.yaml文件
    ```
    docker-compose up
    ```
-4. 错误
+5. 错误
   ```
     启动失败，检查没有通过，报错
     [2018-05-18T17:44:59,658][INFO ][o.e.b.BootstrapChecks    ] [gFOuNlS] bound or publishing to a non-loopback address, enforcing bootstrap checks
@@ -93,7 +104,7 @@ services:
     [1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
   ```
 
-5. 解决错误
+6. 解决错误
   ```
     [1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
     编辑 /etc/security/limits.conf，追加以下内容；
