@@ -1,0 +1,9 @@
++ source数据源
+   + Exec Soure 实时收集
+   + 是
+   + TailDir Soure 支持断点续传
++ channel 内部的通道
+   + memory channel ：保存在内存
+   + file channel ：保存在磁盘都文件，不会丢失，速度慢
+   + kafka channel ：整体性能会更好，省去了sink,flume下一级就必须是kafka
++ sink数据传输目的地

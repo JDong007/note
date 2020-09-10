@@ -1,0 +1,82 @@
++ ### 实例
+   + 对象
+      + 一个抽象工厂（定义实体工厂的实现）
+      + n个实体工厂(实现抽象工厂，创建唯一实体)
+      + 一个产品接口
+      + n一个实体
+   + 代码
+      + 抽象工厂
+         ```
+         public interface ICourseFactory {
+
+             ICourse create();
+
+         }
+         ```
+      + 实体工厂
+         ```
+         public class JavaCourseFactory implements ICourseFactory {
+             public ICourse create() {
+                 return new JavaCourse();
+             }
+         }
+
+         public class PythonCourseFactory implements ICourseFactory {
+             public ICourse create() {
+                 return new PythonCourse();
+             }
+         }
+         ```
+      + 产品接口
+         ```
+         public interface ICourse {
+             /**
+              * 录制视频
+              * @return
+              */
+             void record();
+         }
+         ```
+      + 实体
+         ```
+         public class JavaCourse implements ICourse {
+
+             public void record() {
+                 System.out.println("录制Java课程");
+             }
+         }
+
+         public class PythonCourse implements ICourse {
+
+             public void record() {
+                 System.out.println("录制Python课程");
+             }
+         }
+         ```
+       + 测试
+         ```
+         public static void main(String[] args) {
+
+             ICourseFactory factory = new PythonCourseFactory();
+             ICourse course = factory.create();
+             course.record();
+
+             factory = new JavaCourseFactory();
+             course = factory.create();
+             course.record();
+
+         }
+         ```
++ ### 优点
+   + 更符合开闭原则（新增一种产品时，只需要增加相应的实体工厂和实体即可）
+   + 更符合单一职责原则（一个工厂创建一种实体）
+   + 可以形成基于继承的等级结构
++ ### 缺点
+   + 添加新的工厂和方法会增加相应的实体和实体工厂，系统类的个数成对增加，
+        类的数量增多，难于维护。
+   + 一个具体工厂只能创建一个具体产品
++ ### 应用场景
+   + 创建对象需要大量的重复代码
+   + 客户端不依赖于产品类实例如何被创建实现等细节
+   + 一个类通过其子类来指定创建对象的时候
+   + 希望可以自由切换资源的时候

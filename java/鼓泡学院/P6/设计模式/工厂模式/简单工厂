@@ -1,0 +1,61 @@
++ ### 实例
+   + 对象
+      + 一个产品接口（概念，某种商品的统称）
+      + n实体产品（实物，可以消费的商品）
+      + 一个简单工厂（生产某种概念商品的实体）
+   + 代码
+      + 产品接口(手机)
+         ```
+         public interface Phone {
+            void make();
+          }
+         ```
+      + 实体产品 (实现了产品接口)
+          ```
+          public class IPhone implements Phone {
+              public IPhone() {
+                  this.make();
+              }
+              @Override
+              public void make() {
+                  // TODO Auto-generated method stub
+                  System.out.println("make iphone!");
+              }
+          }
+          ```
+      + 一个简单工厂
+          ```
+          public class PhoneFactory {
+              //根据名称创建 也 可以根据 class 创建
+              public Phone makePhone(String phoneType) {
+                  if(phoneType.equalsIgnoreCase("MiPhone")){
+                      return new MiPhone();
+                  }
+                  else if(phoneType.equalsIgnoreCase("iPhone")) {
+                      return new IPhone();
+                  }
+                  return null;
+              }
+          }
+          ```
+      + 测试
+          ```
+          public class PhoneFactoryTest {
+              public static void main(String[] arg) {
+                  PhoneFactory factory = new PhoneFactory();
+                  Phone miPhone = factory.makePhone("MiPhone");            // make xiaomi phone!
+                  IPhone iPhone = (IPhone)factory.makePhone("iPhone");    // make iphone!
+              }
+          }
+          ```
++ ### 优点
+   + 简单，客户端可以只传入正确的参数就可以获得需要的对象，而不需要考虑创建的过程
+   + 解耦，通过简单工厂，实现客户端和具体实现类的解耦
+
++ ### 缺点
+   + 由于工厂类集中创建了所有产品的逻辑，一旦不能正常运行，整个系统都要受到影响
+   + 随着实体的增加，判断越来越多，越来越难管理。
+   + 增加实体就要修改工厂，不符合开闭原则
+
++ ### 使用场景
+   + 实体的数量十分有限，不会随着系统的复杂而增加实体，工厂一旦创建基本就不再修改
