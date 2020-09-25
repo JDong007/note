@@ -1,0 +1,302 @@
++ javax.net.ssl.SSLPeerUnverifiedException: Certificate for <pilot-mvt.study.sensetime.com> doesn't match any of the subject alternative names: [ingress.local]
+
+   + 解决方案
+      ```java
+      import com.alibaba.fastjson.JSON;
+      import com.alibaba.fastjson.JSONArray;
+      import com.alibaba.fastjson.JSONObject;
+      import lombok.extern.slf4j.Slf4j;
+      import org.apache.commons.lang.StringUtils;
+      import org.apache.http.HttpEntity;
+      import org.apache.http.HttpResponse;
+      import org.apache.http.HttpStatus;
+      import org.apache.http.NameValuePair;
+      import org.apache.http.client.ClientProtocolException;
+      import org.apache.http.client.HttpClient;
+      import org.apache.http.client.config.RequestConfig;
+      import org.apache.http.client.entity.UrlEncodedFormEntity;
+      import org.apache.http.client.methods.CloseableHttpResponse;
+      import org.apache.http.client.methods.HttpGet;
+      import org.apache.http.client.methods.HttpPost;
+      import org.apache.http.client.utils.URIBuilder;
+      import org.apache.http.config.Registry;
+      import org.apache.http.config.RegistryBuilder;
+      import org.apache.http.conn.socket.ConnectionSocketFactory;
+      import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+      import org.apache.http.conn.ssl.NoopHostnameVerifier;
+      import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+      import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+      import org.apache.http.impl.client.CloseableHttpClient;
+      import org.apache.http.impl.client.HttpClientBuilder;
+      import org.apache.http.impl.client.HttpClients;
+      import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+      import org.apache.http.message.BasicNameValuePair;
+      import org.apache.http.ssl.SSLContexts;
+      import org.apache.http.util.EntityUtils;
+      import org.jeecg.common.util.RedisUtil;
+      import org.jeecg.modules.st.config.StConfig;
+      import org.jeecg.modules.st.response.StApiResult;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Component;
+      import org.springframework.web.context.request.RequestContextHolder;
+      import org.springframework.web.context.request.ServletRequestAttributes;
+
+      import javax.net.ssl.SSLContext;
+      import javax.net.ssl.TrustManager;
+      import javax.net.ssl.X509TrustManager;
+      import javax.servlet.http.HttpServletRequest;
+      import java.io.IOException;
+      import java.io.UnsupportedEncodingException;
+      import java.net.URISyntaxException;
+      import java.security.KeyManagementException;
+      import java.security.KeyStoreException;
+      import java.security.NoSuchAlgorithmException;
+      import java.security.cert.CertificateException;
+      import java.util.*;
+
+      /**
+       * @Description ST 请求Utils
+       * @Author HJD
+       * @Date 2020/9/8 16:13
+       */
+      @Slf4j
+      @Component
+      public class StHttpRequestUtils {
+
+          private RedisUtil redisUtil;
+
+          @Autowired
+          public StHttpRequestUtils(RedisUtil redisUtil) {
+              this.redisUtil = redisUtil;
+          }
+
+          /**
+           * post请求
+           * @param param
+           * @param url
+           * @return
+           */
+          public StApiResult postRequest(Map<String,String> param, String url,String stToken){
+              log.info("请求参数-->{},请求URL--->{}",JSON.toJSONString(param),url);
+
+              //1.创建HttpClient对象
+              //采用绕过验证的方式处理https请求
+              try {
+                  SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(
+                          SSLContexts.custom().loadTrustMaterial(null,new TrustSelfSignedStrategy()).build(),
+                          NoopHostnameVerifier.INSTANCE);
+                  final HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory);
+                  final CloseableHttpClient client = httpClientBuilder.build();
+                  //创建URLBuilder
+                  List<NameValuePair> formParams = new ArrayList<>();
+                  for (Map.Entry<String, String> map : param.entrySet()) {
+                      formParams.add(new BasicNameValuePair(map.getKey(), map.getValue()));
+                  }
+                  HttpEntity reqEntity = null;
+                  reqEntity = new UrlEncodedFormEntity(formParams, "utf-8");
+                  RequestConfig requestConfig = RequestConfig.custom()
+                          //一、连接超时：connectionTimeout-->指的是连接一个url的连接等待时间
+                          .setConnectTimeout(5000)
+                          // 二、读取数据超时：SocketTimeout-->指的是连接上一个url，获取response的返回等待时间
+                          .setSocketTimeout(5000)
+                          .setConnectionRequestTimeout(5000)
+                          .build();
+
+                  HttpPost post = new HttpPost(StConfig.host + url);
+                  post.setEntity(reqEntity);
+                  post.setConfig(requestConfig);
+                  //设置请求头
+                  if (StringUtils.isNotBlank(stToken)) {
+                      post.setHeader("X-Authorization", stToken);
+                  }
+                  HttpResponse response = client.execute(post);
+                  if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                      HttpEntity resEntity = response.getEntity();
+                      String content = EntityUtils.toString(resEntity, "utf-8");
+                      log.info("响应数据-->{}",content);
+                      return JSONObject.parseObject(content, StApiResult.class);
+                  } else {
+                      System.out.println("请求失败");
+                  }
+              } catch (NoSuchAlgorithmException e) {
+                  e.printStackTrace();
+              } catch (KeyManagementException e) {
+                  e.printStackTrace();
+              } catch (KeyStoreException e) {
+                  e.printStackTrace();
+              } catch (UnsupportedEncodingException e) {
+                  e.printStackTrace();
+              } catch (ClientProtocolException e) {
+                  e.printStackTrace();
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+
+              return null;
+          }
+
+          /**
+           * get请求
+           * @param param
+           * @param url
+           * @return
+           */
+          public StApiResult getRequest(Map<String,String> param, String url,String stToken){
+              log.info("请求参数-->{},请求URL--->{}",JSON.toJSONString(param),url);
+              //1.创建HttpClient对象
+              //采用绕过验证的方式处理https请求
+              SSLConnectionSocketFactory sslConnectionSocketFactory = null;
+              try {
+                  sslConnectionSocketFactory = new SSLConnectionSocketFactory(
+                          SSLContexts.custom().loadTrustMaterial(null,new TrustSelfSignedStrategy()).build(),
+                          NoopHostnameVerifier.INSTANCE);
+              } catch (NoSuchAlgorithmException e) {
+                  e.printStackTrace();
+              } catch (KeyManagementException e) {
+                  e.printStackTrace();
+              } catch (KeyStoreException e) {
+                  e.printStackTrace();
+              }
+              final HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory);
+              final CloseableHttpClient client = httpClientBuilder.build();
+              //创建URLBuilder
+              URIBuilder uriBuilder = null;
+              CloseableHttpResponse response = null;
+              try {
+                  uriBuilder = new URIBuilder(StConfig.host + url);
+                  //设置参数
+                  for (Map.Entry<String, String> map : param.entrySet()) {
+                      uriBuilder.setParameter(map.getKey(), map.getValue());
+                  }
+                  HttpGet httpGet = new HttpGet(uriBuilder.build());
+                  //设置请求头
+                  if (StringUtils.isNotBlank(stToken)) {
+                      httpGet.setHeader("X-Authorization", stToken);
+                  }
+                  //指定报文头Content-type、User-Agent
+                  httpGet.setHeader("Content-type", "application/x-www-form-urlencoded");
+                  httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; rv:6.0.2) Gecko/20100101 Firefox/6.0.2");
+                  //请求
+                  response = client.execute(httpGet);
+                  if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK){
+                      HttpEntity httpEntity = response.getEntity();
+                      String content = EntityUtils.toString(httpEntity,"utf8");
+                      log.info("响应数据-->{}",content);
+                      return JSONObject.parseObject(content, StApiResult.class);
+                  }
+              } catch (URISyntaxException e) {
+                  e.printStackTrace();
+              } catch (ClientProtocolException e) {
+                  e.printStackTrace();
+              } catch (IOException e) {
+                  e.printStackTrace();
+              }
+              return null;
+          }
+
+          /**
+           * 转成T
+           * @param stApiResult
+           * @return
+           */
+          public static<T> T getObject(StApiResult stApiResult,Class<T> clazz){
+              if (!Objects.isNull(stApiResult)) {
+                  final Object data = stApiResult.getData();
+                  log.info("转T对象数据-->{}",JSON.toJSONString(data));
+                  if (!Objects.isNull(data)) {
+                      return JSONObject.parseObject(JSON.toJSONString(data),clazz);
+                  }
+              }
+              return null;
+          }
+
+          /**
+           * 转成List<T>
+           * @param stApiResult
+           * @return
+           */
+          public static<T> List<T> getList(StApiResult stApiResult,Class clazz){
+              if (!Objects.isNull(stApiResult)) {
+                  final Object data = stApiResult.getData();
+                  log.info("转List<T>对象数据-->{}",JSON.toJSONString(data));
+                  if (!Objects.isNull(data)) {
+                      return JSONArray.parseArray(JSON.toJSONString(data),clazz);
+                  }
+              }
+              return null;
+          }
+
+          /**
+           * 获取token
+           * @return
+           */
+          public String getStToken(){
+              final String userId = getUserId();
+              final Object tokenObj = redisUtil.get(StConfig.ST_TOKEN + userId);
+              if (!Objects.isNull(tokenObj)) {
+                  final String token = tokenObj.toString();
+                  return token;
+              }else {
+                  Map<String,String> param = new HashMap<>(4);
+                  param.put("clientId", StConfig.CLIENT_ID);
+                  param.put("clientSecret", StConfig.CLIENT_SECRET);
+                  param.put("userId", userId);
+                  final StApiResult stApiResult = postRequest(param, StConfig.GET_TOKEN,null);
+                  log.info("请求token返回信息：{}",JSON.toJSONString(stApiResult));
+                  if (stApiResult.getErrorCode().equals(StConfig.SUCCESS_CODE)) {
+                      final JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(stApiResult.getData()));
+                      final Object accessToken = jsonObject.get("accessToken");
+                      redisUtil.set(StConfig.ST_TOKEN + userId,accessToken,3600);
+                      return accessToken.toString();
+                  }
+              }
+              return "";
+          }
+
+          /**
+           * 获取用户ID
+           * @return
+           */
+          public String getUserId(){
+              HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder
+                      .getRequestAttributes()).getRequest();
+              String userId = request.getHeader("X-ST-UserId");
+              return userId;
+          }
+
+          /**
+           * 绕过验证
+           *
+           * @return
+           * @throws NoSuchAlgorithmException
+           * @throws KeyManagementException
+           */
+          public static SSLContext createIgnoreVerifySSL() throws NoSuchAlgorithmException, KeyManagementException {
+              SSLContext sc = SSLContext.getInstance("TLSv1.2");
+
+              // 实现一个X509TrustManager接口，用于绕过验证，不用修改里面的方法
+              X509TrustManager trustManager = new X509TrustManager() {
+                  @Override
+                  public void checkClientTrusted(
+                          java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
+                          String paramString) throws CertificateException {
+                  }
+
+                  @Override
+                  public void checkServerTrusted(
+                          java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
+                          String paramString) throws CertificateException {
+                  }
+
+                  @Override
+                  public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                      return null;
+                  }
+              };
+
+              sc.init(null, new TrustManager[] { trustManager }, null);
+              return sc;
+          }
+      }
+
+      ```
